@@ -1,0 +1,55 @@
+# This workflow used for deploy the service to eks cluster in all environments (dev, uat, prod).
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        type: choice
+        description: 'Release Type (major, minor, patch)'
+        required: true
+        options:
+          - major
+          - minor
+          - patch
+  
+name: Deploy Production
+  
+jobs:
+  version-tag:
+    name: Git Version Tagging
+    runs-on:  ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+  
+      - name: Create Version Tagging 
+        id: version
+        uses: codacy/git-version@2.4.0
+        with:
+          prefix: "v"
+  
+      - name : Use the Version
+        run: |
+          echo ${{ steps.version.outputs.version }}
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+  
+      - name: Use the previous version
+        run: |
+          echo ${{ steps.version.outputs.previous-version }}
+        
+      - name: Push Tagging
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{ steps.version.outputs.version }}',
+            sha: context.sha
+            })
+    
