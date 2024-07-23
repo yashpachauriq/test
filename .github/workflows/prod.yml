@@ -1,15 +1,10 @@
-# This workflow used for deploy the service to eks cluster in all environments (dev, uat, prod).
 on:
-  workflow_dispatch:
-    inputs:
-      release_type:
-        type: choice
-        description: 'Release Type (major, minor, patch)'
-        required: true
-        options:
-          - major
-          - minor
-          - patch
+    workflow_dispatch:
+      inputs:
+        issue_id:
+          type: string
+          description: 'Issue ID'
+          required: true
   
 name: Deploy Production
   
